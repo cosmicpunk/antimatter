@@ -1,11 +1,11 @@
 use cosmwasm_std::{
-    to_binary, Api, Binary, Deps, DepsMut, Env, HandleResponse, InitResponse, MessageInfo, StdResult,
+    to_binary, Api, Binary, Coin, Deps, DepsMut, Env, HandleResponse, InitResponse, MessageInfo, StdResult,
     Storage, Querier,
 };
 
 use crate::error::ContractError;
-use crate::msg::{CountResponse, HandleMsg, InitMsg, QueryMsg};
-use crate::state::{config, config_read, State, Offering};
+use crate::msg::{BuyNft, CountResponse, HandleMsg, InitMsg, QueryMsg, SellNft};
+use crate::state::{config, config_read, Offering};
 use cw721::{Cw721HandleMsg, Cw721ReceiveMsg};
 
 // Note, you can use StdResult in some functions where you do not
@@ -16,11 +16,6 @@ pub fn init(
     info: MessageInfo,
     msg: InitMsg,
 ) -> Result<InitResponse, ContractError> {
-    let state = State {
-        count: msg.count,
-        owner: deps.api.canonical_address(&info.sender)?,
-    };
-    config(deps.storage).save(&state)?;
 
     Ok(InitResponse::default())
 }
@@ -33,8 +28,18 @@ pub fn handle(
     msg: HandleMsg,
 ) -> Result<HandleResponse, ContractError> {
     match msg {
+        HandleMsg::Receive(msg) => try_receive(deps, info, msg),
         HandleMsg::ReceiveNft(msg) => try_receive_nft(deps, info, msg),
     }
+}
+
+pub fn try_receive(
+    deps: DepsMut,
+    info: MessageInfo,
+    rcv_msg: Coin,
+) -> Result<HandleResponse, ContractError> {
+    
+    Ok(HandleResponse::default())
 }
 
 pub fn try_receive_nft(
@@ -126,4 +131,57 @@ mod tests {
     //     let value: CountResponse = from_binary(&res).unwrap();
     //     assert_eq!(5, value.count);
     // }
+
+    #[test]
+    fn sell_offering_happy_path() {
+        let mut deps = mock_dependencies(&coins(2, "token"));
+
+        let msg = InitMsg {
+            name: String::from("test market"),
+        };
+        let info = mock_info("creator", &coins(2, "token"));
+        let _res = init(deps.as_mut(), mock_env(), info, msg).unwrap();
+
+        // beneficiary can release it
+        let info = mock_info("anyone", &coins(2, "token"));
+
+        let sell_msg = SellNft {
+            // address: HumanAddr::from("cw20ContractAddr"),
+            list_price: Coin {
+                denom: "ATOM".to_string(),
+                amount: Uint128(5),
+            },
+        };
+
+        let msg = HandleMsg::ReceiveNft(Cw721ReceiveMsg {
+            sender: HumanAddr::from("seller"),
+            token_id: String::from("SellableNFT"),
+            msg: to_binary(&sell_msg).ok(),
+        });
+        let _res = handle(&mut deps, mock_env(), info, msg).unwrap();
+
+        // Offering should be listed
+        let res = query(&deps, mock_env(), QueryMsg::GetOfferings {}).unwrap();
+        let value: OfferingsResponse = from_binary(&res).unwrap();
+        assert_eq!(1, value.offerings.len());
+
+        let buy_msg = BuyNft {
+            offering_id: value.offerings[0].id.clone(),
+        };
+
+        let msg2 = HandleMsg::Receive(Cw20ReceiveMsg {
+            sender: HumanAddr::from("buyer"),
+            amount: Uint128(5),
+            msg: to_binary(&buy_msg).ok(),
+        });
+
+        let info_buy = mock_info("cw20ContractAddr", &coins(2, "token"));
+
+        let _res = handle(&mut deps, mock_env(), info_buy, msg2).unwrap();
+
+        // check offerings again. Should be 0
+        let res2 = query(&deps, mock_env(), QueryMsg::GetOfferings {}).unwrap();
+        let value2: OfferingsResponse = from_binary(&res2).unwrap();
+        assert_eq!(0, value2.offerings.len());
+    }
 }
