@@ -30,8 +30,8 @@ pub struct BuyNft {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    // GetCount returns the current count as a json-encoded number
-    GetCount {},
+    // GetOfferings returns a list of all offerings
+    GetOfferings {},
 }
 
 // We define a custom struct for each query response
