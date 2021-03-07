@@ -3,7 +3,8 @@ use cosmwasm_std::{
     to_binary, Api, Binary, Coin, Deps, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
     Order, Querier, StdResult, Storage,
 };
-// use cw_storage_plus::{Order};
+use cosmwasm_std::KV;
+use std::str::from_utf8;
 
 use crate::error::ContractError;
 use crate::msg::{BuyNft, CountResponse, HandleMsg, InitMsg, QueryMsg, SellNft};
@@ -64,6 +65,22 @@ fn query_offerings(deps: DepsMut) -> StdResult<OfferingsResponse> {
 
     Ok(OfferingsResponse {
         offerings: res?, // Placeholder
+    })
+}
+
+fn parse_offering(
+    api: &dyn Api,
+    item: StdResult<KV<Offering>>,
+) -> StdResult<QueryOfferingsResult> {
+    item.and_then(|(k, offering)| {
+        let id = from_utf8(&k)?;
+        Ok(QueryOfferingsResult {
+            id: id.to_string(),
+            token_id: offering.token_id,
+            list_price: offering.list_price,
+            contract_addr: api.human_address(&offering.contract_addr)?,
+            seller: api.human_address(&offering.seller)?,
+        })
     })
 }
 
