@@ -1,9 +1,13 @@
 use crate::package::{OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
-    to_binary, Api, Binary, Coin, Deps, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
-    Order, Querier, StdResult, Storage,
+    to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
+    Querier, StdResult,
 };
-use cosmwasm_std::KV;
+
+use cosmwasm_std::Storage;
+#[cfg(feature = "iterator")]
+use cosmwasm_std::{Order, KV};
+
 use std::str::from_utf8;
 
 use crate::error::ContractError;
