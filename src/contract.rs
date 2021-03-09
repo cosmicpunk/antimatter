@@ -1,6 +1,6 @@
 use crate::package::{ContractInfoResponse, OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
-    from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
+    attr, from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
     Order, Querier, StdResult,
 };
 
@@ -57,11 +57,30 @@ pub fn try_receive_nft(
         None => Err(ContractError::NoData {}),
     }?;
 
-    // check if same token Id form same original contract is already on sale
-    // get OFFERING_COUNT
     let id = increment_offerings(deps.storage)?.to_string();
 
-    Ok(HandleResponse::default())
+    let off = Offering {
+        contract_addr: deps.api.canonical_address(&info.sender)?,
+        token_id: rcv_msg.token_id,
+        seller: deps.api.canonical_address(&rcv_msg.sender)?,
+        list_price: msg.list_price.clone(),
+    };
+
+    OFFERINGS.save(deps.storage, &id, &off)?;
+
+    let price_string = format!("{} {}", msg.list_price.amount, msg.list_price.address);
+
+    Ok(HandleResponse {
+        messages: Vec::new(),
+        attributes: vec![
+            attr("action", "sell_nft"),
+            attr("original_contract", info.sender),
+            attr("seller", off.seller),
+            attr("list_price", price_string),
+            attr("token_id", off.token_id),
+        ],
+        data: None,
+    })
 }
 
 pub fn query(deps: DepsMut, _env: Env, msg: QueryMsg) -> StdResult<Binary> {

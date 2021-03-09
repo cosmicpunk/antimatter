@@ -26,11 +26,11 @@ pub const OFFERINGS: Map<&str, Offering> = Map::new("offerings");
 pub const OFFERINGS_COUNT: Item<u64> = Item::new("num_offerings");
 pub const CONTRACT_INFO: Item<ContractInfoResponse> = Item::new("marketplace_info");
 
-pub fn num_offerings<S: Storage>(storage: &S) -> StdResult<u64> {
+pub fn num_offerings(storage: &Storage) -> StdResult<u64> {
     Ok(OFFERINGS_COUNT.may_load(storage)?.unwrap_or_default())
 }
 
-pub fn increment_offerings<S: Storage>(storage: &mut S) -> StdResult<u64> {
+pub fn increment_offerings(storage: &mut Storage) -> StdResult<u64> {
     let val = num_offerings(storage)? + 1;
     OFFERINGS_COUNT.save(storage, &val)?;
     Ok(val)
