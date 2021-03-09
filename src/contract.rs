@@ -1,12 +1,10 @@
 use crate::package::{OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
     to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
-    Querier, StdResult,
+    Order, Querier, StdResult,
 };
 
-use cosmwasm_std::Storage;
-#[cfg(feature = "iterator")]
-use cosmwasm_std::{Order, KV};
+use cosmwasm_std::KV;
 
 use std::str::from_utf8;
 
@@ -63,7 +61,7 @@ pub fn query(deps: DepsMut, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 fn query_offerings(deps: DepsMut) -> StdResult<OfferingsResponse> {
     let res: StdResult<Vec<QueryOfferingsResult>> = OFFERINGS
-        .range(&deps.storage, None, None, Order::Ascending)
+        .range(deps.storage, None, None, Order::Ascending)
         .map(|kv_item| parse_offering(deps.api, kv_item))
         .collect();
 
