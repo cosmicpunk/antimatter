@@ -1,7 +1,7 @@
 use crate::package::{ContractInfoResponse, OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
     attr, from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, HumanAddr,
-    InitResponse, MessageInfo, Order, Querier, StdResult,
+    InitResponse, MessageInfo, Order, StdResult,
 };
 
 use cosmwasm_std::KV;
@@ -9,9 +9,9 @@ use cosmwasm_std::KV;
 use std::str::from_utf8;
 
 use crate::error::ContractError;
-use crate::msg::{CountResponse, HandleMsg, InitMsg, QueryMsg, SellNft};
+use crate::msg::{HandleMsg, InitMsg, QueryMsg, SellNft};
 use crate::state::{increment_offerings, Offering, CONTRACT_INFO, OFFERINGS};
-use cw721::{Cw721HandleMsg, Cw721ReceiveMsg};
+use cw721::{Cw721ReceiveMsg};
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -50,6 +50,7 @@ pub fn execute_buy_nft(
     amount: Coin,
     offering_id: String,
 ) -> Result<HandleResponse, ContractError> {
+    // TODO....
     Ok(HandleResponse::default())
 }
 
@@ -143,50 +144,7 @@ mod tests {
     // }
 
     // #[test]
-    // fn increment() {
-    //     let mut deps = mock_dependencies(&coins(2, "token"));
-
-    //     let msg = InitMsg { count: 17 };
-    //     let info = mock_info("creator", &coins(2, "token"));
-    //     let _res = init(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-    //     // beneficiary can release it
-    //     let info = mock_info("anyone", &coins(2, "token"));
-    //     let msg = HandleMsg::Increment {};
-    //     let _res = handle(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-    //     // should increase counter by 1
-    //     let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-    //     let value: CountResponse = from_binary(&res).unwrap();
-    //     assert_eq!(18, value.count);
-    // }
-
-    // #[test]
-    // fn reset() {
-    //     let mut deps = mock_dependencies(&coins(2, "token"));
-
-    //     let msg = InitMsg { count: 17 };
-    //     let info = mock_info("creator", &coins(2, "token"));
-    //     let _res = init(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-    //     // beneficiary can release it
-    //     let unauth_info = mock_info("anyone", &coins(2, "token"));
-    //     let msg = HandleMsg::Reset { count: 5 };
-    //     let res = handle(deps.as_mut(), mock_env(), unauth_info, msg);
-    //     match res {
-    //         Err(ContractError::Unauthorized {}) => {}
-    //         _ => panic!("Must return unauthorized error"),
-    //     }
-
-    //     // only the original creator can reset the counter
-    //     let auth_info = mock_info("creator", &coins(2, "token"));
-    //     let msg = HandleMsg::Reset { count: 5 };
-    //     let _res = handle(deps.as_mut(), mock_env(), auth_info, msg).unwrap();
-
-    //     // should now be 5
-    //     let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-    //     let value: CountResponse = from_binary(&res).unwrap();
-    //     assert_eq!(5, value.count);
+    // fn execute_buy_nft() {
     // }
 
     #[test]
