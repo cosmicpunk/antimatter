@@ -1,6 +1,6 @@
-use crate::package::{OfferingsResponse, QueryOfferingsResult};
+use crate::package::{ContractInfoResponse, OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
-    to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
+    from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
     Order, Querier, StdResult,
 };
 
@@ -10,7 +10,7 @@ use std::str::from_utf8;
 
 use crate::error::ContractError;
 use crate::msg::{BuyNft, CountResponse, HandleMsg, InitMsg, QueryMsg, SellNft};
-use crate::state::{config, config_read, Offering, OFFERINGS};
+use crate::state::{increment_offerings, Offering, CONTRACT_INFO, OFFERINGS};
 use cw721::{Cw721HandleMsg, Cw721ReceiveMsg};
 
 // Note, you can use StdResult in some functions where you do not
@@ -21,6 +21,8 @@ pub fn init(
     info: MessageInfo,
     msg: InitMsg,
 ) -> Result<InitResponse, ContractError> {
+    let info = ContractInfoResponse { name: msg.name };
+    CONTRACT_INFO.save(deps.storage, &info)?;
     Ok(InitResponse::default())
 }
 
@@ -50,6 +52,15 @@ pub fn try_receive_nft(
     info: MessageInfo,
     rcv_msg: Cw721ReceiveMsg,
 ) -> Result<HandleResponse, ContractError> {
+    let msg: SellNft = match rcv_msg.msg {
+        Some(bin) => Ok(from_binary(&bin)?),
+        None => Err(ContractError::NoData {}),
+    }?;
+
+    // check if same token Id form same original contract is already on sale
+    // get OFFERING_COUNT
+    let id = increment_offerings(deps.storage)?.to_string();
+
     Ok(HandleResponse::default())
 }
 
