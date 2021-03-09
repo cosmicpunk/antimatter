@@ -68,7 +68,7 @@ pub fn try_receive_nft(
 
     OFFERINGS.save(deps.storage, &id, &off)?;
 
-    let price_string = format!("{} {}", msg.list_price.amount, msg.list_price.address);
+    let price_string = format!("{} {}", msg.list_price.amount, msg.list_price.denom);
 
     Ok(HandleResponse {
         messages: Vec::new(),
