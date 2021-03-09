@@ -1,7 +1,7 @@
 use crate::package::{ContractInfoResponse, OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
-    attr, from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, InitResponse, MessageInfo,
-    Order, Querier, StdResult,
+    attr, from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, HumanAddr,
+    InitResponse, MessageInfo, Order, Querier, StdResult,
 };
 
 use cosmwasm_std::KV;
@@ -9,7 +9,7 @@ use cosmwasm_std::KV;
 use std::str::from_utf8;
 
 use crate::error::ContractError;
-use crate::msg::{BuyNft, CountResponse, HandleMsg, InitMsg, QueryMsg, SellNft};
+use crate::msg::{CountResponse, HandleMsg, InitMsg, QueryMsg, SellNft};
 use crate::state::{increment_offerings, Offering, CONTRACT_INFO, OFFERINGS};
 use cw721::{Cw721HandleMsg, Cw721ReceiveMsg};
 
@@ -34,15 +34,21 @@ pub fn handle(
     msg: HandleMsg,
 ) -> Result<HandleResponse, ContractError> {
     match msg {
-        HandleMsg::Receive(msg) => try_receive(deps, info, msg),
+        HandleMsg::BuyNft {
+            spender,
+            amount,
+            offering_id,
+        } => execute_buy_nft(deps, info, spender, amount, offering_id),
         HandleMsg::ReceiveNft(msg) => try_receive_nft(deps, info, msg),
     }
 }
 
-pub fn try_receive(
+pub fn execute_buy_nft(
     deps: DepsMut,
     info: MessageInfo,
-    rcv_msg: Coin,
+    spender: HumanAddr,
+    amount: Coin,
+    offering_id: String,
 ) -> Result<HandleResponse, ContractError> {
     Ok(HandleResponse::default())
 }
@@ -100,10 +106,7 @@ fn query_offerings(deps: DepsMut) -> StdResult<OfferingsResponse> {
     })
 }
 
-fn parse_offering(
-    api: &dyn Api,
-    item: StdResult<KV<Offering>>,
-) -> StdResult<QueryOfferingsResult> {
+fn parse_offering(api: &dyn Api, item: StdResult<KV<Offering>>) -> StdResult<QueryOfferingsResult> {
     item.and_then(|(k, offering)| {
         let id = from_utf8(&k)?;
         Ok(QueryOfferingsResult {
@@ -219,9 +222,9 @@ mod tests {
         let value: OfferingsResponse = from_binary(&res).unwrap();
         assert_eq!(1, value.offerings.len());
 
-        // let buy_msg = BuyNft {
-        //     offering_id: value.offerings[0].id.clone(),
-        // };
+        let buy_msg = BuyNft {
+            offering_id: value.offerings[0].id.clone(),
+        };
 
         // let msg2 = HandleMsg::Receive(Cw20ReceiveMsg {
         //     sender: HumanAddr::from("buyer"),
