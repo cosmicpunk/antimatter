@@ -222,23 +222,25 @@ mod tests {
         let value: OfferingsResponse = from_binary(&res).unwrap();
         assert_eq!(1, value.offerings.len());
 
-        let buy_msg = BuyNft {
+        let buy_msg = HandleMsg::BuyNft {
+            spender: HumanAddr::from("buyer"),
+            amount: Coin {
+                denom: "ATOM".to_string(),
+                amount: Uint128(5),
+            },
             offering_id: value.offerings[0].id.clone(),
         };
 
-        // let msg2 = HandleMsg::Receive(Cw20ReceiveMsg {
-        //     sender: HumanAddr::from("buyer"),
-        //     amount: Uint128(5),
-        //     msg: to_binary(&buy_msg).ok(),
-        // });
-
         // let info_buy = mock_info("cw20ContractAddr", &coins(2, "token"));
-
         // let _res = handle(&mut deps, mock_env(), info_buy, msg2).unwrap();
 
-        // // check offerings again. Should be 0
-        // let res2 = query(&deps, mock_env(), QueryMsg::GetOfferings {}).unwrap();
-        // let value2: OfferingsResponse = from_binary(&res2).unwrap();
-        // assert_eq!(0, value2.offerings.len());
+        // beneficiary can release it
+        let info = mock_info("anyone", &coins(2, "token"));
+        let _res = handle(deps.as_mut(), mock_env(), info, buy_msg).unwrap();
+
+        // check offerings again. Should be 0
+        let res2 = query(deps.as_mut(), mock_env(), QueryMsg::GetOfferings {}).unwrap();
+        let value2: OfferingsResponse = from_binary(&res2).unwrap();
+        assert_eq!(0, value2.offerings.len());
     }
 }
