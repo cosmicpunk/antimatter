@@ -1,7 +1,7 @@
 use crate::package::{ContractInfoResponse, OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
-    attr, from_binary, to_binary, Api, Binary, Coin, DepsMut, Env, HandleResponse, HumanAddr,
-    InitResponse, MessageInfo, Order, StdResult,
+    attr, from_binary, to_binary, Api, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, HandleResponse, HumanAddr,
+    InitResponse, MessageInfo, Order, StdResult, WasmMsg
 };
 
 use cosmwasm_std::KV;
@@ -11,7 +11,7 @@ use std::str::from_utf8;
 use crate::error::ContractError;
 use crate::msg::{HandleMsg, InitMsg, QueryMsg, SellNft};
 use crate::state::{increment_offerings, Offering, CONTRACT_INFO, OFFERINGS};
-use cw721::{Cw721ReceiveMsg};
+use cw721::{Cw721HandleMsg, Cw721ReceiveMsg};
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -50,8 +50,51 @@ pub fn execute_buy_nft(
     amount: Coin,
     offering_id: String,
 ) -> Result<HandleResponse, ContractError> {
-    // TODO....
-    Ok(HandleResponse::default())
+
+    let offering = OFFERINGS.load(deps.storage, &offering_id)?;
+
+    if amount.amount < offering.list_price.amount {
+        return Err(ContractError::InsufficientFunds {});
+    }
+
+    BankMsg::Send {
+        from_address: spender.clone(),
+        to_address: deps.api.human_address(&offering.seller)?,
+        amount: vec![amount],
+    };
+
+    let transfer_cw721_msg = Cw721HandleMsg::TransferNft {
+        recipient: spender.clone(),
+        token_id: offering.token_id.clone(),
+    };
+    let exec_cw721_transfer = WasmMsg::Execute {
+        contract_addr: deps.api.human_address(&offering.contract_addr)?,
+        msg: to_binary(&transfer_cw721_msg)?,
+        send: vec![],
+    };
+
+    // transfer nft to buyer
+    let cw721_transfer_cosmos_msg: CosmosMsg = exec_cw721_transfer.into();
+
+    // let cosmos_msgs = vec![cw20_transfer_cosmos_msg, cw721_transfer_cosmos_msg];
+    let cosmos_msgs = vec![cw721_transfer_cosmos_msg];
+
+    OFFERINGS.remove(deps.storage, &offering_id);
+
+    // let price_string = format!("{} {}", amount, info.sender);
+
+    Ok(HandleResponse {
+        messages: cosmos_msgs,
+        attributes: vec![
+            attr("action", "buy_nft"),
+            attr("buyer", spender),
+            attr("seller", offering.seller),
+            // attr("paid_price", price_string),
+            attr("token_id", offering.token_id),
+            attr("contract_addr", offering.contract_addr),
+        ],
+        data: None,
+    })
 }
 
 pub fn try_receive_nft(
