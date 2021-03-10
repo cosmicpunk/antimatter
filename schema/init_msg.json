@@ -3,12 +3,11 @@
   "title": "InitMsg",
   "type": "object",
   "required": [
-    "count"
+    "name"
   ],
   "properties": {
-    "count": {
-      "type": "integer",
-      "format": "int32"
+    "name": {
+      "type": "string"
     }
   }
 }
