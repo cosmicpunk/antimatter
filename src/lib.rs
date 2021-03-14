@@ -6,5 +6,5 @@ pub mod state;
 
 extern crate cosmwasm_std;
 
-// #[cfg(target_arch = "wasm32")]
-// cosmwasm_std::create_entry_points!(contract);
+#[cfg(target_arch = "wasm32")]
+cosmwasm_std::create_entry_points!(contract);
