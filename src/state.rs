@@ -3,7 +3,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{CanonicalAddr, StdResult, Storage, Coin};
-use cosmwasm_storage::{singleton, singleton_read, ReadonlySingleton, Singleton};
 use cw_storage_plus::{Item, Map};
 
 pub static CONFIG_KEY: &[u8] = b"config";

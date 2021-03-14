@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SellNft",
+  "type": "object",
+  "required": [
+    "list_price"
+  ],
+  "properties": {
+    "list_price": {
+      "$ref": "#/definitions/Coin"
+    }
+  },
+  "definitions": {
+    "Coin": {
+      "type": "object",
+      "required": [
+        "amount",
+        "denom"
+      ],
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "denom": {
+          "type": "string"
+        }
+      }
+    },
+    "Uint128": {
+      "type": "string"
+    }
+  }
+}

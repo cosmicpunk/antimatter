@@ -20,3 +20,6 @@ pub struct QueryOfferingsResult {
 pub struct OfferingsResponse {
     pub offerings: Vec<QueryOfferingsResult>,
 }
+
+
+// THIS FILE SHOULD BE EXTRACTED TO ITS OWN PACKAGE PROJECT LIKE CW20 OR CW721
