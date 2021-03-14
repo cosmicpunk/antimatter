@@ -1,6 +1,6 @@
 use crate::package::{ContractInfoResponse, OfferingsResponse, QueryOfferingsResult};
 use cosmwasm_std::{
-    attr, from_binary, to_binary, Api, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, HandleResponse, HumanAddr,
+    attr, from_binary, to_binary, Api, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, HandleResponse, HumanAddr,
     InitResponse, MessageInfo, Order, StdResult, WasmMsg
 };
 
@@ -133,13 +133,13 @@ pub fn try_receive_nft(
     })
 }
 
-pub fn query(deps: DepsMut, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetOfferings {} => to_binary(&query_offerings(deps)?),
     }
 }
 
-fn query_offerings(deps: DepsMut) -> StdResult<OfferingsResponse> {
+fn query_offerings(deps: Deps) -> StdResult<OfferingsResponse> {
     let res: StdResult<Vec<QueryOfferingsResult>> = OFFERINGS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|kv_item| parse_offering(deps.api, kv_item))
