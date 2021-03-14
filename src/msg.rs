@@ -37,9 +37,3 @@ pub enum QueryMsg {
     // GetOfferings returns a list of all offerings
     GetOfferings {},
 }
-
-// We define a custom struct for each query response
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct CountResponse {
-    pub count: i32,
-}
